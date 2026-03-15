@@ -1,0 +1,1851 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Rosalia LBD — Запись на приём</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Nunito+Sans:wght@300;400;600;700&display=swap');
+
+    /* ================================================================
+       DESIGN TOKENS
+    ================================================================ */
+    :root {
+      /* Адаптируются к теме Telegram */
+      --bg:            var(--tg-theme-bg-color,            #F6F3F1);
+      --fg:            var(--tg-theme-text-color,          #2E2E2E);
+      --card:          var(--tg-theme-secondary-bg-color,  #ffffff);
+      --secondary:     var(--tg-theme-secondary-bg-color,  #EDE6DF);
+      --secondary-fg:  var(--tg-theme-text-color,          #2E2E2E);
+      --muted-fg:      var(--tg-theme-hint-color,          #4A3230);
+
+      /* Фирменные цвета — не меняются */
+      --primary:       #CFA7A5;
+      --primary-fg:    #ffffff;
+      --rose-d:        #B88F8E;
+      --muted:         rgba(207,167,165,.12);
+      --accent:        #CFA7A5;
+      --accent-fg:     #2E2E2E;
+      --destructive:   #d94040;
+      --destructive-fg:#ffffff;
+      --border:        rgba(184,143,142,.35);
+      --radius:        0.75rem;
+      --shadow-sm:     0 1px 3px rgba(0,0,0,0.07);
+      --shadow:        0 2px 8px rgba(0,0,0,0.09);
+      --font-display:  'Cormorant Garamond', Georgia, 'Times New Roman', serif;
+      --font-body:     'Nunito Sans', 'Segoe UI', system-ui, sans-serif;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      .time-slot { color: #F0E6E6; }
+      :root {
+        --bg:          #120808;
+        --fg:          #F0E6E6;
+        --card:        #1F0F0F;
+        --secondary:   #1F0F0F;
+        --secondary-fg:#F0E6E6;
+        --muted-fg:    #C4A8A8;
+        --muted:       rgba(207,167,165,.08);
+        --border:      rgba(207,167,165,.2);
+        --shadow-sm:   0 1px 3px rgba(0,0,0,.3);
+        --shadow:      0 2px 8px rgba(0,0,0,.4);
+      }
+    }
+
+    /* ================================================================
+       RESET & BASE
+    ================================================================ */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { font-size: 16px; scroll-behavior: smooth; }
+    body {
+      background: var(--bg);
+      color: var(--fg);
+      font-family: var(--font-body);
+      font-size: 1rem;
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+    h1, h2, h3, h4 { font-family: var(--font-display); line-height: 1.2; }
+    button, input, textarea, select { font-family: inherit; font-size: 1rem; }
+    button { cursor: pointer; }
+    input[type="number"]::-webkit-inner-spin-button,
+    input[type="number"]::-webkit-outer-spin-button { opacity: 1; }
+
+    /* ================================================================
+       HERO — профиль мастера
+    ================================================================ */
+    .hero {
+      background: linear-gradient(to bottom, var(--secondary) 0%, var(--bg) 100%);
+      padding: 1.5rem 1.25rem 1.25rem;
+    }
+    .hero-profile {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 1rem;
+    }
+    .hero-avatar {
+      width: 60px; height: 60px;
+      border-radius: 50%;
+      background: var(--primary);
+      color: #fff;
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      display: flex; align-items: center; justify-content: center;
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+    .hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-info { flex: 1; }
+    .hero-name {
+      font-family: var(--font-display);
+      font-size: 1.35rem; font-weight: 600;
+      color: var(--fg);
+      line-height: 1.2;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .hero-rose {
+      width: 22px; height: 29px;
+      flex-shrink: 0;
+    }
+    .hero-sub {
+      font-size: 0.82rem;
+      color: var(--muted-fg);
+      margin-top: 2px;
+    }
+    .hero-ig {
+      color: var(--primary);
+      display: flex; align-items: center;
+      text-decoration: none;
+      flex-shrink: 0;
+    }
+    .hero-facts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.4rem 0.6rem;
+    }
+    .hero-fact {
+      font-size: 0.78rem;
+      background: rgba(207,167,165,.15);
+      color: var(--muted-fg);
+      border-radius: 20px;
+      padding: 3px 10px;
+    }
+    /* ── Анимированная роза ── */
+    .rp { fill: none; stroke: var(--rose-d); stroke-linecap: round; stroke-linejoin: round; }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    .rose-wrap {
+      display: flex; justify-content: center;
+      margin: 1.1rem 0 0.5rem;
+    }
+    .rose-wrap svg { width: 52px; height: 68px; }
+    .rp-s { stroke-width:1.2; stroke-dasharray:60;  stroke-dashoffset:60;  animation: draw .8s  .2s ease forwards; }
+    .rp-l { stroke-width:.9;  stroke-dasharray:80;  stroke-dashoffset:80;  animation: draw .7s  .7s ease forwards; }
+    .rp-o { stroke-width:1;   stroke-dasharray:260; stroke-dashoffset:260; animation: draw 1.2s 1.0s ease forwards; }
+    .rp-m { stroke-width:.9;  stroke-dasharray:180; stroke-dashoffset:180; animation: draw 1.0s 1.8s ease forwards; }
+    .rp-c { stroke-width:.8;  stroke-dasharray:100; stroke-dashoffset:100; animation: draw .8s  2.4s ease forwards; }
+
+    /* ================================================================
+       MAIN WRAPPER
+    ================================================================ */
+    .main {
+      max-width: 42rem;
+      margin: 0 auto;
+      padding: 0 1.25rem max(5rem, calc(2rem + env(safe-area-inset-bottom)));
+    }
+    .section { margin-top: 1.75rem; }
+
+    /* ================================================================
+       BUTTONS
+    ================================================================ */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.45rem;
+      padding: 0.65rem 1.25rem;
+      border: 1.5px solid transparent;
+      border-radius: var(--radius);
+      font-weight: 600;
+      font-family: var(--font-display);
+      font-size: 1rem;
+      line-height: 1.2;
+      transition: opacity 0.15s, transform 0.1s;
+      white-space: nowrap;
+    }
+    .btn:active:not(:disabled) { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.45; cursor: not-allowed; }
+
+    .btn-accent   { background: var(--accent); color: var(--accent-fg); }
+    .btn-primary  { background: var(--primary); color: var(--primary-fg); }
+    .btn-destructive { background: var(--destructive); color: var(--destructive-fg); }
+
+    .btn-outline  {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--fg);
+    }
+    .btn-outline-danger {
+      background: transparent;
+      border-color: var(--destructive);
+      color: var(--destructive);
+    }
+    .btn-ghost { background: transparent; border: none; color: var(--muted-fg); }
+
+    @media (hover: hover) {
+      .btn-accent:hover:not(:disabled)         { opacity: 0.87; }
+      .btn-primary:hover:not(:disabled)        { opacity: 0.87; }
+      .btn-destructive:hover:not(:disabled)    { opacity: 0.87; }
+      .btn-outline:hover:not(:disabled)        { border-color: var(--primary); }
+      .btn-outline-danger:hover:not(:disabled) { background: rgba(217,64,64,0.07); }
+      .btn-ghost:hover:not(:disabled)          { color: var(--fg); }
+      .service-card:hover                      { border-color: rgba(160,114,121,0.35); }
+      .time-slot:hover                         { border-color: rgba(160,114,121,0.5); }
+      .cal-day:hover:not(:disabled):not(.cal-sel) { background: var(--muted); }
+      .cal-nav-btn:hover                       { border-color: var(--primary); color: var(--fg); }
+    }
+
+    .btn-lg { padding: 0.85rem 1.6rem; font-size: 1.1rem; }
+    .btn-full { width: 100%; }
+
+    /* ================================================================
+       CARDS
+    ================================================================ */
+    .card {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow-sm);
+    }
+
+    /* ================================================================
+       SECTION HEADER
+    ================================================================ */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.9rem;
+      gap: 0.75rem;
+    }
+    .section-title {
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 600;
+      color: var(--fg);
+    }
+
+    /* ================================================================
+       SERVICE CARDS
+    ================================================================ */
+    .service-grid { display: grid; gap: 0.7rem; }
+
+    .service-card {
+      width: 100%;
+      text-align: left;
+      padding: 1rem 1.1rem;
+      border-radius: var(--radius);
+      border: 2px solid transparent;
+      background: var(--card);
+      box-shadow: var(--shadow-sm);
+      cursor: pointer;
+      transition: border-color 0.15s, background 0.15s;
+    }
+    /* hover moved to @media (hover: hover) */
+    .service-card.is-selected { border-color: var(--primary); background: var(--secondary); }
+
+    .sc-row { display: flex; justify-content: space-between; align-items: flex-start; gap: 1rem; }
+    .sc-info { flex: 1; min-width: 0; }
+    .sc-name { font-family: var(--font-display); font-size: 1.15rem; font-weight: 600; }
+    .sc-desc { font-size: 0.855rem; color: var(--muted-fg); margin-top: 0.2rem; line-height: 1.4; }
+    .sc-meta { flex-shrink: 0; text-align: right; display: flex; flex-direction: column; gap: 0.2rem; }
+    .sc-dur  { font-size: 0.85rem; color: var(--muted-fg); }
+    .sc-price{ font-size: 0.9rem; font-weight: 700; color: var(--accent); }
+
+    /* ================================================================
+       ADDON CARDS
+    ================================================================ */
+    .addon-card { padding: 1rem 1.1rem; margin-top: 0.7rem; }
+    .addon-row  { display: flex; align-items: center; gap: 0.75rem; }
+    .addon-label {
+      font-family: var(--font-display);
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .addon-sub  { font-size: 1rem; color: var(--muted-fg); margin-left: 0.35rem; }
+    .addon-extras {
+      margin-top: 0.75rem;
+      margin-left: 2.1rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .meta-dur   { font-size: 0.85rem; color: var(--muted-fg); }
+    .meta-price { font-size: 0.85rem; font-weight: 700; color: var(--accent); }
+
+    /* Custom checkbox */
+    .cb {
+      width: 1.15rem;
+      height: 1.15rem;
+      border: 2px solid var(--border);
+      border-radius: 3px;
+      appearance: none;
+      -webkit-appearance: none;
+      cursor: pointer;
+      background: var(--card);
+      flex-shrink: 0;
+      transition: background 0.12s, border-color 0.12s;
+      position: relative;
+    }
+    .cb:checked { background: var(--primary); border-color: var(--primary); }
+    .cb:checked::after {
+      content: '';
+      position: absolute;
+      top: 1px; left: 4px;
+      width: 4px; height: 8px;
+      border: 2px solid #fff;
+      border-top: none;
+      border-left: none;
+      transform: rotate(45deg);
+    }
+    .cb:focus { outline: 2px solid var(--primary); outline-offset: 2px; }
+
+    /* Number input */
+    .num-input {
+      width: 5rem;
+      padding: 0.35rem 0.5rem;
+      border: 1.5px solid var(--border);
+      border-radius: calc(var(--radius) * 0.6);
+      background: var(--card);
+      color: var(--fg);
+    }
+    .num-input:focus { outline: none; border-color: var(--primary); }
+
+    /* ================================================================
+       SUMMARY BAR
+    ================================================================ */
+    .summary-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.9rem 1.1rem;
+      background: rgba(232,222,224,0.5);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .sb-label    { font-size: 0.9rem; color: var(--muted-fg); }
+    .sb-right    { text-align: right; }
+    .sb-price    { font-family: var(--font-display); font-weight: 700; font-size: 1.2rem; }
+    .sb-duration { font-size: 0.85rem; color: var(--muted-fg); margin-left: 0.75rem; }
+
+    /* ================================================================
+       DATETIME SELECTION
+    ================================================================ */
+    .datetime-layout {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    @media (min-width: 580px) {
+      .datetime-layout { flex-direction: row; align-items: flex-start; }
+    }
+
+    /* Calendar */
+    .calendar {
+      background: var(--card);
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1rem;
+      box-shadow: var(--shadow-sm);
+      display: inline-block;
+      min-width: 220px;
+    }
+    .cal-nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 0.9rem;
+      gap: 0.5rem;
+    }
+    .cal-nav-btn {
+      background: none;
+      border: 1px solid var(--border);
+      border-radius: calc(var(--radius) * 0.5);
+      width: 2rem; height: 2rem;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      color: var(--muted-fg);
+      font-size: 1rem;
+      transition: border-color 0.12s, color 0.12s;
+    }
+    .cal-month { font-family: var(--font-display); font-size: 1rem; font-weight: 600; flex: 1; text-align: center; }
+    .cal-grid  {
+      display: grid;
+      grid-template-columns: repeat(7, 2.75rem);
+      gap: 2px;
+    }
+    .cal-day-name {
+      text-align: center;
+      font-size: 0.72rem;
+      color: var(--muted-fg);
+      padding: 0.25rem 0;
+      font-weight: 600;
+    }
+    .cal-day {
+      width: 2.75rem; height: 2.75rem;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.875rem;
+      border-radius: 50%;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: var(--fg);
+      transition: background 0.1s;
+    }
+    .cal-day.cal-today:not(.cal-sel) { font-weight: 700; color: var(--primary); }
+    .cal-day.cal-sel { background: var(--primary); color: var(--primary-fg); }
+    .cal-day:disabled {
+      opacity: 0.28;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    .cal-day.cal-empty { visibility: hidden; pointer-events: none; }
+
+    /* Time slots */
+    .time-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 0.6rem;
+    }
+    @media (max-width: 380px) {
+      .time-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    .time-slot {
+      border: 2px solid var(--border);
+      border-radius: var(--radius);
+      padding: 0.65rem 0.4rem;
+      text-align: center;
+      font-weight: 600;
+      font-size: 0.9rem;
+      background: var(--card);
+      cursor: pointer;
+      transition: border-color 0.12s, background 0.12s, color 0.12s;
+    }
+    .time-slot.is-selected {
+      border-color: var(--primary);
+      background: var(--primary);
+      color: var(--primary-fg);
+    }
+
+    /* ================================================================
+       FORM
+    ================================================================ */
+    .form-group  { margin-bottom: 1.1rem; }
+    .form-label  { display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.4rem; }
+    .form-input, .form-textarea {
+      width: 100%;
+      padding: 0.65rem 0.9rem;
+      border: 1.5px solid var(--border);
+      border-radius: var(--radius);
+      background: var(--card);
+      color: var(--fg);
+      transition: border-color 0.12s, box-shadow 0.12s;
+    }
+    .form-input:focus, .form-textarea:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(160,114,121,0.15);
+    }
+    .form-textarea { resize: vertical; min-height: 4.5rem; }
+
+    /* ================================================================
+       TOAST
+    ================================================================ */
+    #toast-wrap {
+      position: fixed;
+      bottom: 1.5rem;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 900;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      align-items: center;
+      pointer-events: none;
+      width: min(92vw, 30rem);
+    }
+    .toast {
+      background: var(--fg);
+      color: #fff;
+      padding: 0.85rem 1.2rem;
+      border-radius: var(--radius);
+      font-size: 0.9rem;
+      line-height: 1.45;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.22);
+      pointer-events: auto;
+      width: 100%;
+      animation: toastIn 0.22s ease;
+    }
+    .toast.t-success { background: var(--primary); }
+    .toast.t-error   { background: var(--destructive); }
+    .toast__title { font-weight: 700; font-family: var(--font-display); font-size: 1.05rem; }
+    .toast__desc  { margin-top: 0.2rem; opacity: 0.9; }
+    @keyframes toastIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ================================================================
+       MODAL
+    ================================================================ */
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.42);
+      z-index: 800;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.25rem;
+    }
+    .modal-box {
+      background: var(--card);
+      border-radius: var(--radius);
+      padding: 1.6rem;
+      max-width: 27rem;
+      width: 100%;
+      box-shadow: 0 12px 40px rgba(0,0,0,0.2);
+    }
+    .modal-title { font-family: var(--font-display); font-size: 1.35rem; font-weight: 700; margin-bottom: 0.7rem; }
+    .modal-desc  { font-size: 0.9rem; color: var(--muted-fg); margin-bottom: 1.4rem; line-height: 1.55; }
+    .modal-desc strong { color: var(--fg); }
+    .modal-footer { display: flex; gap: 0.75rem; justify-content: flex-end; }
+
+    /* ================================================================
+       SUCCESS SCREEN
+    ================================================================ */
+    .success-screen {
+      text-align: center;
+      padding: 2.5rem 1rem;
+    }
+    .success-icon  { font-size: 4rem; margin-bottom: 1rem; color: var(--primary); }
+    .success-title { font-family: var(--font-display); font-size: 1.8rem; font-weight: 700; margin-bottom: 0.5rem; }
+    .success-desc  { color: var(--muted-fg); margin-bottom: 1.75rem; }
+    .success-location {
+      display: flex; align-items: center; gap: .75rem;
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: .85rem 1rem;
+      margin: 0 auto 1.25rem; max-width: 26rem;
+      text-align: left;
+    }
+    .success-actions {
+      display: flex; gap: .75rem; justify-content: center;
+      flex-wrap: wrap; max-width: 26rem; margin: 0 auto 1rem;
+    }
+    .btn-sm { padding: 0.4rem 0.75rem; font-size: 0.82rem; }
+    .address-block {
+      display: flex; gap: .75rem; align-items: flex-start;
+      max-width: 42rem; margin: 2rem auto 0;
+      padding: 1rem 1.25rem;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+    }
+    .address-text { font-size: .9rem; color: var(--fg); line-height: 1.5; }
+    .address-map  { font-size: .82rem; color: var(--primary); text-decoration: none; margin-top: 4px; display: inline-block; }
+    .address-map:hover { text-decoration: underline; }
+
+    /* ================================================================
+       GALLERY
+    ================================================================ */
+    .gallery-wrap {
+      position: relative;
+      margin: 0 -1.25rem;
+    }
+    .gallery-wrap::after {
+      content: '';
+      position: absolute;
+      top: 0; right: 0; bottom: 0.5rem;
+      width: 3.5rem;
+      background: linear-gradient(to right, transparent, var(--bg));
+      pointer-events: none;
+    }
+    .gallery-strip {
+      display: flex;
+      gap: 0.6rem;
+      overflow-x: auto;
+      scroll-snap-type: x mandatory;
+      -webkit-overflow-scrolling: touch;
+      padding-bottom: 0.5rem;
+      padding-left: 1.25rem;
+      padding-right: 1.25rem;
+    }
+    .gallery-strip::-webkit-scrollbar { display: none; }
+    .gallery-item {
+      flex-shrink: 0;
+      scroll-snap-align: start;
+      width: 130px;
+      position: relative;
+      border-radius: var(--radius);
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+    .gallery-item img {
+      width: 100%;
+      aspect-ratio: 3/4;
+      object-fit: cover;
+      display: block;
+    }
+    .gallery-tag {
+      position: absolute;
+      bottom: 0.4rem;
+      left: 0.4rem;
+      font-size: 0.68rem;
+      font-weight: 600;
+      background: rgba(0,0,0,0.45);
+      color: #fff;
+      padding: 2px 7px;
+      border-radius: 20px;
+      letter-spacing: 0.03em;
+      backdrop-filter: blur(4px);
+    }
+
+    /* ================================================================
+       NEAREST SLOT
+    ================================================================ */
+    .nearest-slot {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.85rem 1rem;
+      background: rgba(207,167,165,.1);
+      border: 1.5px solid var(--primary);
+      border-radius: var(--radius);
+      cursor: pointer;
+      margin-bottom: 1rem;
+      transition: background 0.15s;
+    }
+    .nearest-slot:active { background: rgba(207,167,165,.2); }
+    .nearest-slot-label { font-size: 0.8rem; color: var(--muted-fg); }
+    .nearest-slot-time  { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; }
+    .nearest-slot-cta   { margin-left: auto; font-size: 0.85rem; color: var(--primary); white-space: nowrap; flex-shrink: 0; }
+
+    /* ================================================================
+       UTILITIES
+    ================================================================ */
+    .hidden      { display: none !important; }
+    .mt-2        { margin-top: 0.5rem; }
+    .mt-3        { margin-top: 0.75rem; }
+    .mt-4        { margin-top: 1rem; }
+    .mt-6        { margin-top: 1.5rem; }
+    .flex-end    { display: flex; justify-content: flex-end; }
+    .flex-between{ display: flex; justify-content: space-between; align-items: center; }
+    .text-muted  { color: var(--muted-fg); }
+    .text-small  { font-size: 0.875rem; }
+    .text-center { text-align: center; }
+    .section-h2  {
+      font-family: var(--font-display);
+      font-size: 1.5rem;
+      font-weight: 600;
+      margin-bottom: 1rem;
+    }
+
+    @media (max-width: 460px) {
+      .hero { padding: 2rem 1rem 2rem; }
+      .btn-lg { padding: 0.75rem 1.25rem; font-size: 1rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ============================================================
+     HERO
+============================================================ -->
+<header class="hero">
+  <div class="hero-profile">
+    <div class="hero-avatar">
+      <img src="foto-rozy-avatar.jpg" alt="Роза" onerror="this.parentElement.textContent='Р'">
+    </div>
+    <div class="hero-info">
+      <div class="hero-name">
+        <svg class="hero-rose" viewBox="0 0 44 58" fill="none" aria-hidden="true">
+          <path class="rp rp-s" d="M22 57 L22 34"/>
+          <path class="rp rp-l" d="M22 46 C15 41 12 33 15 27 C18 31 21 39 22 45"/>
+          <path class="rp rp-o" d="M22 33 C8 27 3 10 12 3 C16 0 20 6 21 16 C21.5 10 22 5 22 5 C22 5 22.5 10 23 16 C24 6 28 0 32 3 C41 10 36 27 22 33Z"/>
+          <path class="rp rp-m" d="M22 28 C14 23 11 12 16 6 C18 3 20 9 21 17 C21.5 11 22 7 22 7 C22 7 22.5 11 23 17 C24 9 26 3 28 6 C33 12 30 23 22 28Z"/>
+          <path class="rp rp-c" d="M22 22 C18 18 17 12 20 8 C21 6 21.5 10 22 15 C22.5 10 23 6 24 8 C27 12 26 18 22 22Z"/>
+        </svg>
+        Rosalia LBD
+      </div>
+      <div class="hero-sub">Архитектура натуральных ногтей · Минск</div>
+    </div>
+    <a class="hero-ig" href="https://www.instagram.com/rosalia_lbd/" target="_blank" rel="noopener" title="Instagram">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+        <rect x="2" y="2" width="20" height="20" rx="5"/>
+        <circle cx="12" cy="12" r="4"/>
+        <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/>
+      </svg>
+    </a>
+  </div>
+  <div class="hero-facts">
+    <span class="hero-fact">6 лет опыта</span>
+    <span class="hero-fact">Стерилизация инструментов</span>
+    <span class="hero-fact">Натуральный результат</span>
+    <span class="hero-fact">Пн–Пт, 10:00–20:00</span>
+  </div>
+</header>
+
+<!-- ============================================================
+     MAIN
+============================================================ -->
+<main class="main">
+
+  <!-- === GALLERY === -->
+  <section class="section">
+    <div class="gallery-wrap"><div class="gallery-strip">
+      <div class="gallery-item"><img src="mini-foto/n-1.JPG" alt="Натуральный маникюр" loading="lazy"><span class="gallery-tag">Натуральный</span></div>
+      <div class="gallery-item"><img src="mini-foto/k-2.jpg" alt="Классика" loading="lazy"><span class="gallery-tag">Классика</span></div>
+      <div class="gallery-item"><img src="mini-foto/m-1.jpg" alt="Модные оттенки" loading="lazy"><span class="gallery-tag">Модные</span></div>
+      <div class="gallery-item"><img src="mini-foto/n-2.JPG" alt="Натуральный маникюр" loading="lazy"><span class="gallery-tag">Натуральный</span></div>
+      <div class="gallery-item"><img src="mini-foto/k-3.jpg" alt="Классика" loading="lazy"><span class="gallery-tag">Классика</span></div>
+      <div class="gallery-item"><img src="mini-foto/m-2.jpg" alt="Модные оттенки" loading="lazy"><span class="gallery-tag">Модные</span></div>
+      <div class="gallery-item"><img src="mini-foto/n-3.jpg" alt="Натуральный маникюр" loading="lazy"><span class="gallery-tag">Натуральный</span></div>
+      <div class="gallery-item"><img src="mini-foto/k-4.jpg" alt="Классика" loading="lazy"><span class="gallery-tag">Классика</span></div>
+      <div class="gallery-item"><img src="mini-foto/m-3.jpg" alt="Модные оттенки" loading="lazy"><span class="gallery-tag">Модные</span></div>
+    </div></div>
+  </section>
+
+  <!-- === SERVICES SECTION (всегда видна) === -->
+  <section id="sect-services" class="section">
+
+    <div id="nearest-slot" class="nearest-slot hidden" onclick="quickBook()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink:0;color:var(--primary)">
+        <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>
+      </svg>
+      <div>
+        <div class="nearest-slot-label">Ближайшее окошко</div>
+        <div id="nearest-slot-time" class="nearest-slot-time"></div>
+      </div>
+      <span class="nearest-slot-cta">Записаться →</span>
+    </div>
+
+    <div class="section-header">
+      <h2 class="section-title">Выберите услугу</h2>
+      <button class="btn btn-accent btn-lg" id="btn-book-top" onclick="startBooking()">
+        📅 Записаться
+      </button>
+    </div>
+
+    <div id="service-grid" class="service-grid"></div>
+
+    <!-- Ремонт ногтей -->
+    <div class="card addon-card">
+      <div class="addon-row">
+        <input type="checkbox" id="repair-cb" class="cb" onchange="toggleRepair(this.checked)">
+        <label class="addon-label" for="repair-cb">Ремонт ногтей</label>
+      </div>
+      <div id="repair-extras" class="addon-extras hidden">
+        <span class="text-muted text-small">Кол-во:</span>
+        <input type="number" id="repair-count" class="num-input" value="1" min="1" max="10"
+               oninput="updateRepairCount(this.value)">
+        <span id="repair-dur"   class="meta-dur">⏱ 5 мин</span>
+        <span id="repair-price" class="meta-price">💰 0 руб</span>
+      </div>
+    </div>
+
+    <!-- Бонус -->
+    <div class="card addon-card">
+      <div class="addon-row">
+        <input type="checkbox" id="bonus-cb" class="cb" onchange="toggleBonus(this.checked)">
+        <label class="addon-label" for="bonus-cb">
+          Бонус
+          <span class="addon-sub">Исправление формы ногтей — бесплатно, +10 мин</span>
+        </label>
+      </div>
+    </div>
+
+    <!-- Кнопка отмены записи -->
+    <div id="cancel-btn-wrap" class="flex-end mt-4">
+      <button class="btn btn-outline-danger btn-lg" onclick="startCancel()">
+        ✕&nbsp;&nbsp;Отменить запись
+      </button>
+    </div>
+  </section>
+
+  <!-- === BOOKING FLOW === -->
+  <div id="sect-booking" class="hidden">
+
+    <!-- Summary bar -->
+    <div id="summary-bar" class="section summary-bar hidden">
+      <span class="sb-label">Итого:</span>
+      <div class="sb-right">
+        <span id="sb-price"    class="sb-price">0 руб</span>
+        <span id="sb-duration" class="sb-duration">~0 мин</span>
+      </div>
+    </div>
+
+    <!-- Дата и время -->
+    <section id="sect-datetime" class="section hidden">
+      <h2 class="section-h2">Выберите дату и время</h2>
+      <div class="datetime-layout">
+        <div id="calendar-wrap" class="calendar"></div>
+        <div id="timeslots-wrap" class="hidden" style="flex:1;">
+          <p id="ts-label" class="text-muted text-small mt-2" style="margin-bottom:0.75rem;"></p>
+          <div id="ts-grid" class="time-grid"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Форма контактов -->
+    <section id="sect-form" class="section hidden">
+      <h2 class="section-h2">Ваши данные</h2>
+      <form id="booking-form" onsubmit="submitBooking(event)">
+        <div class="form-group">
+          <label class="form-label" for="f-name">Имя *</label>
+          <input class="form-input" id="f-name" type="text" placeholder="Ваше имя" required autocomplete="given-name">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="f-phone">Телефон *</label>
+          <input class="form-input" id="f-phone" type="tel" placeholder="+375 (__) ___-__-__" required autocomplete="tel">
+          <button type="button" id="btn-request-contact" class="btn btn-outline btn-full mt-2 hidden" onclick="requestTgContact()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M22 2L11 13"/><path d="M22 2L15 22 11 13 2 9l20-7z"/>
+            </svg>
+            Взять номер из Telegram
+          </button>
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="f-tg">Телеграм</label>
+          <input class="form-input" id="f-tg" type="text" placeholder="@username">
+        </div>
+        <div class="form-group">
+          <label class="form-label" for="f-comment">Комментарий</label>
+          <textarea class="form-textarea" id="f-comment" rows="3" placeholder="Пожелания или вопросы"></textarea>
+        </div>
+        <button type="submit" id="btn-submit" class="btn btn-accent btn-full btn-lg">
+          Записаться
+        </button>
+      </form>
+    </section>
+
+    <div class="text-center mt-6">
+      <button class="btn btn-ghost" onclick="goBack()">← Назад</button>
+    </div>
+  </div>
+
+  <!-- === BOOKING SUCCESS === -->
+  <div id="sect-success" class="hidden success-screen">
+    <div class="success-icon">✓</div>
+    <h2 class="success-title">Запись подтверждена</h2>
+    <p id="success-desc" class="success-desc"></p>
+    <div class="success-location">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;color:var(--primary)">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+        <circle cx="12" cy="9" r="2.5"/>
+      </svg>
+      <div>
+        <div style="font-weight:600;font-size:.9rem;">Malina Studio</div>
+        <div style="font-size:.82rem;color:var(--muted-fg);">просп. Независимости, 85, корп. 5, пом. 91</div>
+      </div>
+      <a href="https://maps.google.com/?q=Минск,+проспект+Независимости+85+корп+5" target="_blank" rel="noopener" class="btn btn-outline btn-sm" style="margin-left:auto;white-space:nowrap;">На карте</a>
+    </div>
+    <div class="success-actions">
+      <a id="success-cal-btn" href="#" target="_blank" rel="noopener" class="btn btn-outline btn-lg" style="flex:1;">
+        📅 В календарь
+      </a>
+      <a href="https://www.instagram.com/rosalia_lbd/" target="_blank" rel="noopener" class="btn btn-outline btn-lg" style="flex:1;">
+        Instagram
+      </a>
+    </div>
+    <div class="text-center mt-6">
+      <button class="btn btn-ghost" onclick="goBack()">← На главную</button>
+    </div>
+  </div>
+
+  <!-- === CANCEL FLOW === -->
+  <div id="sect-cancel" class="hidden">
+
+    <div id="cancel-form-view">
+      <section class="section">
+        <h2 class="section-h2">Отмена записи</h2>
+        <p class="text-muted text-small" style="margin-bottom:1.25rem;">
+          Введите номер телефона и выберите дату записи, которую хотите отменить.
+        </p>
+
+        <div class="form-group">
+          <label class="form-label" for="c-phone">Номер телефона</label>
+          <input class="form-input" id="c-phone" type="tel" placeholder="+375 (__) ___-__-__" autocomplete="tel">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Дата записи</label>
+          <div id="cancel-cal-wrap" class="calendar" style="display:block;"></div>
+        </div>
+
+        <div style="display:flex;gap:0.75rem;margin-top:1.25rem;">
+          <button id="btn-find-cancel" class="btn btn-destructive btn-lg" style="flex:1;" onclick="findBookingToCancel()">
+            Найти и отменить
+          </button>
+          <button class="btn btn-outline btn-lg" onclick="goBack()">←</button>
+        </div>
+      </section>
+    </div>
+
+    <div id="cancel-success-view" class="hidden success-screen">
+      <div class="success-icon">✓</div>
+      <h2 class="success-title">Заказ отменён</h2>
+      <p id="cancel-success-desc" class="success-desc"></p>
+      <button class="btn btn-outline btn-lg" onclick="goBack()">← На главную</button>
+    </div>
+
+  </div>
+
+  <!-- АДРЕС -->
+  <div class="address-block">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" style="flex-shrink:0;color:var(--primary);margin-top:2px">
+      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/>
+      <circle cx="12" cy="9" r="2.5"/>
+    </svg>
+    <div>
+      <div class="address-text">Жду вас по адресу: Минск, проспект Независимости, 85, корп.&nbsp;5, метро «Академия наук»</div>
+      <a href="https://maps.google.com/?q=Минск,+проспект+Независимости+85+корпус+5" target="_blank" rel="noopener" class="address-map">Открыть на карте →</a>
+    </div>
+  </div>
+
+  <!-- ПОДЕЛИТЬСЯ -->
+  <div style="max-width:42rem;margin:1rem auto 0;padding:0 1.25rem;">
+    <button class="btn btn-outline btn-full btn-lg" onclick="shareApp()" style="gap:.6rem;">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/>
+        <line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/>
+        <line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/>
+      </svg>
+      Поделиться с подругой
+    </button>
+  </div>
+
+</main>
+
+<!-- ============================================================
+     TOAST CONTAINER
+============================================================ -->
+<div id="toast-wrap"></div>
+
+<!-- ============================================================
+     CONFIRM MODAL
+============================================================ -->
+<div id="modal-backdrop" class="modal-backdrop hidden" onclick="closeModal(event)">
+  <div class="modal-box">
+    <h3 class="modal-title">Подтверждение отмены</h3>
+    <p id="modal-desc" class="modal-desc"></p>
+    <div class="modal-footer">
+      <button class="btn btn-outline" onclick="closeModal()">Нет, оставить</button>
+      <button class="btn btn-destructive" onclick="confirmCancel()">Да, отменить</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ============================================================
+     SCRIPT
+============================================================ -->
+<script>
+'use strict';
+
+// ================================================================
+// TELEGRAM MINI APP
+// ================================================================
+const _tg = window.Telegram?.WebApp;
+
+// ================================================================
+// SUPABASE CONFIG  (anon key — public by design, RLS enabled)
+// ================================================================
+const SUPA_URL = 'https://vtxugmiybckndfbelxet.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0eHVnbWl5YmNrbmRmYmVseGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4OTAyMTAsImV4cCI6MjA4ODQ2NjIxMH0.P_ff0g7oxSPI-S8nz3BqNCqHs90UPAipifbAsZFwTrY';
+
+// ================================================================
+// CONSTANTS
+// ================================================================
+const WORK_START    = 10;   // 10:00
+const WORK_END      = 20;   // 20:00
+const SLOT_STEP     = 15;   // минут
+const BUFFER        = 15;   // буфер после записи
+const MIN_AHEAD_MIN = 60;   // мин. за сколько минут до начала можно записаться
+const MAX_DAYS_AHEAD= 30;
+
+const HOLIDAYS = [
+  '01-01','01-02','01-03','01-04','01-05','01-06','01-07','01-08',
+  '02-23','03-08','05-01','05-09','06-12','11-04',
+];
+
+const MONTH_NAMES = [
+  'Январь','Февраль','Март','Апрель','Май','Июнь',
+  'Июль','Август','Сентябрь','Октябрь','Ноябрь','Декабрь',
+];
+const MONTH_NAMES_GEN = [
+  'января','февраля','марта','апреля','мая','июня',
+  'июля','августа','сентября','октября','ноября','декабря',
+];
+const DOW_NAMES = ['Пн','Вт','Ср','Чт','Пт','Сб','Вс'];
+
+// ================================================================
+// SERVICES DATA
+// ================================================================
+const SERVICES = [
+  {
+    id: 'hygiene', name: 'Гигиена',
+    desc: 'Снятие покрытия гель лаком, маникюр гигиенический',
+    duration: 25, price: 30,
+  },
+  {
+    id: 'light', name: 'Лайт',
+    desc: 'Снятие покрытия гель лаком, маникюр гигиенический, покрытие гель-лаком',
+    duration: 80, price: 50,
+  },
+  {
+    id: 'light-plus', name: 'Лайт+',
+    desc: 'Снятие покрытия гель лаком, маникюр гигиенический, покрытие гель-лаком, лёгкий дизайн / френч / втирка',
+    duration: 105, price: 55,
+  },
+  {
+    id: 'super', name: 'Супер',
+    desc: 'Снятие покрытия гель лаком, маникюр гигиенический, укрепление гелем, покрытие гель-лаком',
+    duration: 115, price: 55,
+  },
+  {
+    id: 'super-plus', name: 'Супер+',
+    desc: 'Снятие покрытия гель лаком, маникюр гигиенический, укрепление гелем, покрытие гель-лаком, лёгкий дизайн / френч / втирка',
+    duration: 120, price: 60,
+  },
+];
+
+function calcRepair(n) {
+  return {
+    duration: n * 5,
+    price: n <= 2 ? 0 : (n - 2) * 5,
+  };
+}
+
+// ================================================================
+// STATE
+// ================================================================
+const S = {
+  mode: 'idle',             // idle | booking | cancel
+  serviceId: null,
+  repairOn: false,
+  repairCount: 1,
+  bonusOn: false,
+  date: null,               // Date | null
+  time: null,               // "HH:MM" | null
+  bookedSlots: [],          // [{booking_time, total_duration}]
+
+  calYear:  null,
+  calMonth: null,
+
+  ccYear:   null,           // cancel calendar
+  ccMonth:  null,
+  ccDate:   null,
+
+  foundBooking: null,
+  busy: false,
+  quickDate: null,
+};
+
+function service()   { return SERVICES.find(s => s.id === S.serviceId) || null; }
+function totalDur()  {
+  const svc = service();
+  let d = svc ? svc.duration : 0;
+  if (S.repairOn)  d += calcRepair(S.repairCount).duration;
+  if (S.bonusOn)   d += 10;
+  return d;
+}
+function totalPrice(){
+  const svc = service();
+  let p = svc ? svc.price : 0;
+  if (S.repairOn) p += calcRepair(S.repairCount).price;
+  return p;
+}
+
+// ================================================================
+// SUPABASE REST HELPERS
+// ================================================================
+function sbHeaders(extra) {
+  return Object.assign({
+    'apikey': SUPA_KEY,
+    'Authorization': 'Bearer ' + SUPA_KEY,
+    'Content-Type': 'application/json',
+  }, extra || {});
+}
+
+async function sbGet(table, qs) {
+  const r = await fetch(SUPA_URL + '/rest/v1/' + table + '?' + qs, { headers: sbHeaders() });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function sbPost(table, data) {
+  const r = await fetch(SUPA_URL + '/rest/v1/' + table, {
+    method: 'POST',
+    headers: sbHeaders({ 'Prefer': 'return=representation' }),
+    body: JSON.stringify(data),
+  });
+  if (!r.ok) throw new Error(await r.text());
+  return r.json();
+}
+
+async function sbDelete(table, qs) {
+  const r = await fetch(SUPA_URL + '/rest/v1/' + table + '?' + qs, {
+    method: 'DELETE',
+    headers: sbHeaders(),
+  });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+async function notifyMaster(body) {
+  try {
+    await fetch(SUPA_URL + '/functions/v1/notify-master', {
+      method: 'POST',
+      headers: sbHeaders(),
+      body: JSON.stringify(body),
+    });
+  } catch (e) {
+    console.warn('notify-master error:', e);
+  }
+}
+
+// ================================================================
+// TOAST
+// ================================================================
+function toast(title, desc, type) {
+  const wrap = document.getElementById('toast-wrap');
+  const el = document.createElement('div');
+  el.className = 'toast' + (type ? ' t-' + type : '');
+  el.innerHTML =
+    '<div class="toast__title">' + escHtml(title) + '</div>' +
+    (desc ? '<div class="toast__desc">' + escHtml(desc) + '</div>' : '');
+  wrap.appendChild(el);
+  const delay = type === 'success' ? 7000 : 4000;
+  setTimeout(function() {
+    el.style.transition = 'opacity 0.3s';
+    el.style.opacity = '0';
+    setTimeout(function() { el.remove(); }, 320);
+  }, delay);
+}
+
+function escHtml(s) {
+  return String(s)
+    .replace(/&/g,'&amp;')
+    .replace(/</g,'&lt;')
+    .replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;');
+}
+
+// ================================================================
+// DATE HELPERS
+// ================================================================
+function dateStr(d) {
+  return d.getFullYear() + '-' +
+    String(d.getMonth() + 1).padStart(2,'0') + '-' +
+    String(d.getDate()).padStart(2,'0');
+}
+
+function dateRu(d) {
+  return d.getDate() + ' ' + MONTH_NAMES_GEN[d.getMonth()];
+}
+
+function isHoliday(d) {
+  const md = String(d.getMonth() + 1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+  return HOLIDAYS.indexOf(md) !== -1;
+}
+
+function today0() {
+  const t = new Date();
+  t.setHours(0, 0, 0, 0);
+  return t;
+}
+
+function isDisabled(d) {
+  const t = today0();
+  const maxD = new Date(t); maxD.setDate(maxD.getDate() + MAX_DAYS_AHEAD);
+  const dow = d.getDay(); // 0=Sun, 6=Sat
+  return dow === 0 || dow === 6 || isHoliday(d) || d < t || d > maxD;
+}
+
+// ================================================================
+// CALENDAR RENDERER
+// ================================================================
+// navId — id функции навигации (глобальная строка)
+// selId — id функции выбора даты (глобальная строка)
+function renderCal(containerId, selDate, yearKey, monthKey, navFn, selFn) {
+  const wrap = document.getElementById(containerId);
+  if (!wrap) return;
+
+  const t    = today0();
+  let year  = S[yearKey];
+  let month = S[monthKey];
+  if (year === null) {
+    year  = t.getFullYear();
+    month = t.getMonth();
+    S[yearKey]  = year;
+    S[monthKey] = month;
+  }
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay  = new Date(year, month + 1, 0);
+
+  // Сдвиг: 0=Пн..6=Вс
+  let startDow = firstDay.getDay(); // 0=Вс
+  startDow = startDow === 0 ? 6 : startDow - 1;
+
+  let html = '<div class="cal-nav">' +
+    '<button class="cal-nav-btn" onclick="' + navFn + '(-1)">&#8249;</button>' +
+    '<span class="cal-month">' + MONTH_NAMES[month] + ' ' + year + '</span>' +
+    '<button class="cal-nav-btn" onclick="' + navFn + '(1)">&#8250;</button>' +
+    '</div>' +
+    '<div class="cal-grid">' +
+    DOW_NAMES.map(function(n){ return '<div class="cal-day-name">' + n + '</div>'; }).join('');
+
+  for (var i = 0; i < startDow; i++) {
+    html += '<button class="cal-day cal-empty" disabled></button>';
+  }
+
+  for (var d = 1; d <= lastDay.getDate(); d++) {
+    var date = new Date(year, month, d);
+    var isT  = date.getTime() === t.getTime();
+    var isSel= selDate && date.getTime() === selDate.getTime();
+    var dis  = isDisabled(date);
+
+    var cls = 'cal-day';
+    if (isT && !isSel)  cls += ' cal-today';
+    if (isSel)          cls += ' cal-sel';
+
+    if (dis) {
+      html += '<button class="' + cls + '" disabled>' + d + '</button>';
+    } else {
+      html += '<button class="' + cls + '" onclick="' + selFn + '(new Date(' + year + ',' + month + ',' + d + '))">' + d + '</button>';
+    }
+  }
+
+  html += '</div>';
+  wrap.innerHTML = html;
+}
+
+// Navigation wrappers — глобальные функции для onclick
+function navBookingCal(dir) {
+  var m = S.calMonth + dir, y = S.calYear;
+  if (m > 11) { m = 0; y++; }
+  if (m < 0)  { m = 11; y--; }
+  S.calYear = y; S.calMonth = m;
+  renderCal('calendar-wrap', S.date, 'calYear', 'calMonth', 'navBookingCal', 'selectDate');
+}
+
+function navCancelCal(dir) {
+  var m = S.ccMonth + dir, y = S.ccYear;
+  if (m > 11) { m = 0; y++; }
+  if (m < 0)  { m = 11; y--; }
+  S.ccYear = y; S.ccMonth = m;
+  renderCal('cancel-cal-wrap', S.ccDate, 'ccYear', 'ccMonth', 'navCancelCal', 'selectCancelDate');
+}
+
+// ================================================================
+// DATE SELECTION
+// ================================================================
+function selectDate(date) {
+  S.date      = date;
+  S.time      = null;
+  S.calYear   = date.getFullYear();
+  S.calMonth  = date.getMonth();
+  renderCal('calendar-wrap', S.date, 'calYear', 'calMonth', 'navBookingCal', 'selectDate');
+  loadTimeSlots(date);
+}
+
+function selectCancelDate(date) {
+  S.ccDate  = date;
+  S.ccYear  = date.getFullYear();
+  S.ccMonth = date.getMonth();
+  renderCal('cancel-cal-wrap', S.ccDate, 'ccYear', 'ccMonth', 'navCancelCal', 'selectCancelDate');
+}
+
+// ================================================================
+// TIME SLOTS
+// ================================================================
+async function loadTimeSlots(date) {
+  var wrap  = document.getElementById('timeslots-wrap');
+  var grid  = document.getElementById('ts-grid');
+  var label = document.getElementById('ts-label');
+  wrap.classList.remove('hidden');
+  grid.innerHTML = '<p class="text-muted text-small">Загрузка слотов…</p>';
+
+  try {
+    S.bookedSlots = await sbGet('bookings',
+      'select=booking_time,total_duration&booking_date=eq.' + dateStr(date));
+  } catch(e) {
+    S.bookedSlots = [];
+  }
+
+  renderTimeSlots();
+}
+
+function renderTimeSlots() {
+  var dur   = totalDur();
+  var grid  = document.getElementById('ts-grid');
+  var label = document.getElementById('ts-label');
+  label.textContent = 'Доступные слоты (' + dur + ' мин):';
+
+  var slots = genSlots(dur, S.date, S.bookedSlots);
+  if (!slots.length) {
+    grid.innerHTML = '<p class="text-muted text-small">Нет доступных слотов на эту дату</p>';
+    return;
+  }
+  grid.innerHTML = slots.map(function(t) {
+    var sel = S.time === t ? ' is-selected' : '';
+    return '<button class="time-slot' + sel + '" onclick="selectTime(\'' + t + '\')">' + t + '</button>';
+  }).join('');
+}
+
+function genSlots(dur, date, booked) {
+  var slots = [];
+  var now   = new Date();
+  var minMs = now.getTime() + MIN_AHEAD_MIN * 60 * 1000;
+  var t0    = today0();
+  var isToday = date.getTime() === t0.getTime();
+
+  for (var min = WORK_START * 60; min + dur <= WORK_END * 60; min += SLOT_STEP) {
+    var h = Math.floor(min / 60);
+    var m = min % 60;
+    var ts = String(h).padStart(2,'0') + ':' + String(m).padStart(2,'0');
+
+    if (isToday) {
+      var sd = new Date(date);
+      sd.setHours(h, m, 0, 0);
+      if (sd.getTime() < minMs) continue;
+    }
+    if (slotOccupied(min, dur, booked)) continue;
+    slots.push(ts);
+  }
+  return slots;
+}
+
+function slotOccupied(slotMin, dur, booked) {
+  for (var i = 0; i < booked.length; i++) {
+    var parts  = booked[i].booking_time.split(':');
+    var bStart = parseInt(parts[0]) * 60 + parseInt(parts[1]);
+    var bEnd   = bStart + booked[i].total_duration + BUFFER;
+    var slotEnd= slotMin + dur;
+    if (slotMin < bEnd && slotEnd > bStart) return true;
+  }
+  return false;
+}
+
+function selectTime(t) {
+  _tg?.HapticFeedback?.impactOccurred('light');
+  S.time = t;
+  document.querySelectorAll('.time-slot').forEach(function(btn) {
+    btn.classList.toggle('is-selected', btn.textContent === t);
+  });
+  updateBookingUI();
+  // Скроллим к форме
+  var form = document.getElementById('sect-form');
+  if (!form.classList.contains('hidden')) {
+    setTimeout(function() {
+      form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 80);
+  }
+}
+
+// ================================================================
+// MODE CONTROL
+// ================================================================
+function startBooking() {
+  S.mode = 'booking';
+  applyMode();
+  setTimeout(function() {
+    document.getElementById('sect-booking').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 60);
+}
+
+function startCancel() {
+  S.mode = 'cancel';
+  S.ccYear = null; S.ccMonth = null; S.ccDate = null;
+  applyMode();
+  renderCal('cancel-cal-wrap', null, 'ccYear', 'ccMonth', 'navCancelCal', 'selectCancelDate');
+}
+
+function goBack() {
+  S.mode    = 'idle';
+  S.date    = null;
+  S.time    = null;
+  S.calYear = null; S.calMonth = null;
+  S.ccYear  = null; S.ccMonth  = null; S.ccDate = null;
+  S.foundBooking = null;
+  document.getElementById('cancel-form-view').classList.remove('hidden');
+  document.getElementById('cancel-success-view').classList.add('hidden');
+  document.getElementById('c-phone').value = '';
+  applyMode();
+}
+
+function applyMode() {
+  var inBooking = S.mode === 'booking';
+  var inCancel  = S.mode === 'cancel';
+  document.getElementById('sect-booking').classList.toggle('hidden', !inBooking);
+  document.getElementById('sect-cancel').classList.toggle('hidden',  !inCancel);
+  document.getElementById('cancel-btn-wrap').classList.toggle('hidden', inCancel);
+
+  if (inBooking) {
+    if (S.calYear === null) {
+      var t = today0();
+      S.calYear  = t.getFullYear();
+      S.calMonth = t.getMonth();
+    }
+    renderCal('calendar-wrap', S.date, 'calYear', 'calMonth', 'navBookingCal', 'selectDate');
+    if (S.quickDate) {
+      var qd = S.quickDate;
+      S.quickDate = null;
+      selectDate(qd);
+    }
+  }
+  updateBookingUI();
+  tgBackBtnUpdate();
+}
+
+function updateBookingUI() {
+  if (S.mode !== 'booking') return;
+  var svc  = service();
+  var hasSvc  = !!svc;
+  var hasDate = !!(S.date);
+  var hasTime = !!(S.time);
+
+  // Summary bar
+  var sb = document.getElementById('summary-bar');
+  sb.classList.toggle('hidden', !hasSvc);
+  if (hasSvc) {
+    document.getElementById('sb-price').textContent    = totalPrice() + ' руб';
+    document.getElementById('sb-duration').textContent = '~' + totalDur() + ' мин';
+  }
+
+  // DateTime
+  document.getElementById('sect-datetime').classList.toggle('hidden', !hasSvc);
+
+  // Form
+  document.getElementById('sect-form').classList.toggle('hidden', !(hasSvc && hasDate && hasTime));
+  tgMainBtnUpdate();
+}
+
+// ================================================================
+// SERVICE SELECTION
+// ================================================================
+function selectService(id) {
+  _tg?.HapticFeedback?.impactOccurred('light');
+  S.serviceId = id;
+  S.date      = null;
+  S.time      = null;
+  S.calYear   = null;
+  S.calMonth  = null;
+
+  document.querySelectorAll('.service-card').forEach(function(c) {
+    c.classList.toggle('is-selected', c.dataset.id === id);
+  });
+
+  if (S.mode !== 'booking') {
+    startBooking();
+  } else {
+    var t = today0();
+    S.calYear  = t.getFullYear();
+    S.calMonth = t.getMonth();
+    renderCal('calendar-wrap', null, 'calYear', 'calMonth', 'navBookingCal', 'selectDate');
+    document.getElementById('timeslots-wrap').classList.add('hidden');
+    updateBookingUI();
+    setTimeout(function() {
+      document.getElementById('sect-datetime').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 80);
+  }
+}
+
+// ================================================================
+// ADDONS
+// ================================================================
+function toggleRepair(on) {
+  _tg?.HapticFeedback?.impactOccurred('light');
+  S.repairOn = on;
+  document.getElementById('repair-extras').classList.toggle('hidden', !on);
+  refreshRepairMeta();
+  refreshSlotsIfNeeded();
+}
+
+function updateRepairCount(val) {
+  var n = Math.max(1, Math.min(10, parseInt(val) || 1));
+  S.repairCount = n;
+  document.getElementById('repair-count').value = n;
+  refreshRepairMeta();
+  refreshSlotsIfNeeded();
+}
+
+function toggleBonus(on) {
+  _tg?.HapticFeedback?.impactOccurred('light');
+  S.bonusOn = on;
+  refreshSlotsIfNeeded();
+}
+
+function refreshRepairMeta() {
+  var r = calcRepair(S.repairCount);
+  document.getElementById('repair-dur').textContent   = '⏱ ' + r.duration + ' мин';
+  document.getElementById('repair-price').textContent = '💰 ' + r.price + ' руб';
+  updateBookingUI();
+}
+
+function refreshSlotsIfNeeded() {
+  updateBookingUI();
+  if (S.date) {
+    S.time = null;
+    renderTimeSlots();
+  }
+}
+
+// ================================================================
+// NEAREST SLOT
+// ================================================================
+async function loadNearestSlot() {
+  var minDur = 90;
+  var t = today0();
+  for (var i = 0; i <= 7; i++) {
+    var d = new Date(t.getTime());
+    d.setDate(d.getDate() + i);
+    if (isDisabled(d)) continue;
+    var booked = [];
+    try {
+      booked = await sbGet('bookings',
+        'select=booking_time,total_duration&booking_date=eq.' + dateStr(d));
+    } catch(e) {}
+    var slots = genSlots(minDur, d, booked);
+    if (slots.length) { showNearestSlot(d, slots[0]); return; }
+  }
+}
+
+function showNearestSlot(d, time) {
+  var el = document.getElementById('nearest-slot');
+  if (!el) return;
+  var t = today0();
+  var tmrw = new Date(t.getTime()); tmrw.setDate(tmrw.getDate() + 1);
+  var label = d.getTime() === t.getTime()    ? 'сегодня' :
+              d.getTime() === tmrw.getTime() ? 'завтра'  : dateRu(d);
+  document.getElementById('nearest-slot-time').textContent = label + ' в ' + time;
+  el.dataset.date = dateStr(d);
+  el.classList.remove('hidden');
+}
+
+function quickBook() {
+  var el = document.getElementById('nearest-slot');
+  var parts = el.dataset.date.split('-');
+  S.quickDate = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+  startBooking();
+}
+
+// ================================================================
+// TELEGRAM CONTACT REQUEST
+// ================================================================
+function requestTgContact() {
+  if (!_tg?.requestContact) return;
+  _tg.requestContact(function(isSent, event) {
+    if (!isSent) return;
+    var contact = event?.responseUnsafe?.contact;
+    if (!contact) return;
+    if (contact.phone_number) {
+      document.getElementById('f-phone').value = contact.phone_number;
+    }
+    if (!document.getElementById('f-name').value && (contact.first_name || contact.last_name)) {
+      document.getElementById('f-name').value =
+        [contact.first_name, contact.last_name].filter(Boolean).join(' ');
+    }
+  });
+}
+
+// ================================================================
+// TELEGRAM NATIVE BUTTONS
+// ================================================================
+function tgBackBtnUpdate() {
+  if (!_tg?.BackButton) return;
+  (S.mode !== 'idle') ? _tg.BackButton.show() : _tg.BackButton.hide();
+}
+
+function tgMainBtnUpdate() {
+  if (!_tg?.MainButton) return;
+  if (S.mode !== 'booking') { _tg.MainButton.hide(); return; }
+  var svc = service();
+  if (!svc) { _tg.MainButton.hide(); return; }
+  var price = totalPrice();
+  if (S.time) {
+    _tg.MainButton.setParams({
+      text: 'ЗАПИСАТЬСЯ · ' + price + ' руб',
+      color: '#CFA7A5',
+      text_color: '#ffffff',
+      is_active: true,
+      is_visible: true,
+    });
+  } else {
+    _tg.MainButton.setParams({
+      text: 'ВЫБЕРИТЕ ДАТУ И ВРЕМЯ',
+      color: '#9E7C7A',
+      text_color: '#ffffff',
+      is_active: false,
+      is_visible: true,
+    });
+  }
+}
+
+// ================================================================
+// SUBMIT BOOKING
+// ================================================================
+async function submitBooking(e) {
+  e.preventDefault();
+  if (S.busy) return;
+  var svc = service();
+  if (!svc || !S.date || !S.time) return;
+
+  var name    = document.getElementById('f-name').value.trim();
+  var phone   = document.getElementById('f-phone').value.trim();
+  var tg      = document.getElementById('f-tg').value.trim();
+  var comment = document.getElementById('f-comment').value.trim();
+  if (!name || !phone) return;
+
+  S.busy = true;
+  var btn = document.getElementById('btn-submit');
+  btn.disabled = true;
+  btn.textContent = 'Отправка…';
+  if (_tg?.MainButton) _tg.MainButton.showProgress(false);
+
+  var ds   = dateStr(S.date);
+  var dur  = totalDur();
+  var price= totalPrice();
+
+  try {
+    await sbPost('bookings', {
+      client_name:     name,
+      client_phone:    phone,
+      client_telegram: tg || '',
+      client_comment:  comment,
+      service_id:      svc.id,
+      service_name:    svc.name,
+      repair_enabled:  S.repairOn,
+      repair_count:    S.repairOn ? S.repairCount : 0,
+      bonus_enabled:   S.bonusOn,
+      booking_date:    ds,
+      booking_time:    S.time,
+      total_duration:  dur,
+      total_price:     price,
+    });
+
+    notifyMaster({
+      type:           'booking',
+      client_name:     name,
+      client_phone:    phone,
+      client_telegram: tg,
+      service_name:    svc.name,
+      booking_date:    ds,
+      booking_time:    S.time,
+      total_duration:  dur,
+      total_price:     price,
+    });
+
+    var extras = [S.repairOn ? 'ремонт' : '', S.bonusOn ? 'бонус' : ''].filter(Boolean).join(', ');
+    var descText = name + ', ждём вас ' + dateRu(S.date) + ' в ' + S.time +
+      '. ' + svc.name + (extras ? ' + ' + extras : '') +
+      '. Итого: ' + dur + ' мин, ' + price + ' руб.';
+    document.getElementById('success-desc').textContent = descText;
+
+    // Google Calendar ссылка
+    var calDate = S.date;
+    var startStr = calDate.getFullYear() +
+      String(calDate.getMonth()+1).padStart(2,'0') +
+      String(calDate.getDate()).padStart(2,'0') + 'T' +
+      S.time.replace(':','') + '00';
+    var endDate = new Date(calDate);
+    endDate.setMinutes(endDate.getMinutes() + dur);
+    var endStr = endDate.getFullYear() +
+      String(endDate.getMonth()+1).padStart(2,'0') +
+      String(endDate.getDate()).padStart(2,'0') + 'T' +
+      String(endDate.getHours()).padStart(2,'0') +
+      String(endDate.getMinutes()).padStart(2,'0') + '00';
+    var calLink = 'https://calendar.google.com/calendar/render?action=TEMPLATE' +
+      '&text=' + encodeURIComponent('Маникюр — Rosalia LBD') +
+      '&dates=' + startStr + '/' + endStr +
+      '&location=' + encodeURIComponent('Минск, просп. Независимости, 85, корп. 5, пом. 91 (Malina Studio)') +
+      '&details=' + encodeURIComponent(svc.name + (extras ? ' + ' + extras : ''));
+    document.getElementById('success-cal-btn').href = calLink;
+
+    // Сброс
+    S.serviceId = null;
+    S.repairOn  = false; S.repairCount = 1; S.bonusOn = false;
+    S.date = null; S.time = null;
+    S.calYear = null; S.calMonth = null;
+    S.mode = 'idle';
+
+    document.getElementById('repair-cb').checked = false;
+    document.getElementById('repair-extras').classList.add('hidden');
+    document.getElementById('bonus-cb').checked  = false;
+    document.getElementById('booking-form').reset();
+    document.querySelectorAll('.service-card').forEach(function(c) { c.classList.remove('is-selected'); });
+
+    refreshRepairMeta();
+
+    // Показываем экран успеха
+    document.getElementById('sect-services').classList.add('hidden');
+    document.getElementById('sect-booking').classList.add('hidden');
+    document.getElementById('sect-success').classList.remove('hidden');
+    _tg?.HapticFeedback?.notificationOccurred('success');
+    window.scrollTo(0, 0);
+
+  } catch (err) {
+    console.error(err);
+    toast('Ошибка записи', 'Попробуйте ещё раз.', 'error');
+  }
+
+  S.busy = false;
+  btn.disabled = false;
+  btn.textContent = 'Записаться';
+  if (_tg?.MainButton) { _tg.MainButton.hideProgress(); tgMainBtnUpdate(); }
+}
+
+// ================================================================
+// CANCEL BOOKING
+// ================================================================
+async function findBookingToCancel() {
+  var phone = document.getElementById('c-phone').value.trim();
+  if (!phone || !S.ccDate) {
+    toast('Заполните поля', 'Введите номер телефона и выберите дату.', 'error');
+    return;
+  }
+
+  var btn = document.getElementById('btn-find-cancel');
+  btn.disabled = true;
+  btn.textContent = 'Поиск…';
+
+  try {
+    var ds   = dateStr(S.ccDate);
+    var data = await sbGet('bookings',
+      'client_phone=eq.' + encodeURIComponent(phone) +
+      '&booking_date=eq.' + ds + '&limit=1');
+
+    if (!data || data.length === 0) {
+      toast('Запись не найдена', 'Проверьте номер телефона и дату.', 'error');
+    } else {
+      S.foundBooking = data[0];
+      openModal();
+    }
+  } catch(e) {
+    toast('Ошибка поиска', 'Попробуйте ещё раз.', 'error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Найти и отменить';
+}
+
+function openModal() {
+  var b = S.foundBooking;
+  document.getElementById('modal-desc').innerHTML =
+    'Вы уверены, что хотите отменить запись?<br><br>' +
+    '<strong>' + escHtml(b.service_name) + '</strong>, ' +
+    escHtml(dateRu(S.ccDate)) + ' в ' + escHtml(b.booking_time);
+  document.getElementById('modal-backdrop').classList.remove('hidden');
+}
+
+function closeModal(e) {
+  if (!e || e.target === document.getElementById('modal-backdrop')) {
+    document.getElementById('modal-backdrop').classList.add('hidden');
+  }
+}
+
+async function confirmCancel() {
+  document.getElementById('modal-backdrop').classList.add('hidden');
+  if (!S.foundBooking) return;
+  try {
+    await sbDelete('bookings', 'id=eq.' + S.foundBooking.id);
+
+    notifyMaster({
+      type:         'cancellation',
+      client_name:  S.foundBooking.client_name,
+      client_phone: S.foundBooking.client_phone,
+      service_name: S.foundBooking.service_name,
+      booking_date: S.foundBooking.booking_date,
+      booking_time: S.foundBooking.booking_time,
+    });
+
+    document.getElementById('cancel-success-desc').textContent =
+      S.foundBooking.service_name + ', ' + dateRu(S.ccDate) + ' в ' + S.foundBooking.booking_time;
+    document.getElementById('cancel-form-view').classList.add('hidden');
+    document.getElementById('cancel-success-view').classList.remove('hidden');
+  } catch(e) {
+    toast('Ошибка отмены', 'Попробуйте ещё раз.', 'error');
+  }
+}
+
+// ================================================================
+// INIT — рендер карточек услуг
+// ================================================================
+(function initServices() {
+  var grid = document.getElementById('service-grid');
+  grid.innerHTML = SERVICES.map(function(s) {
+    return '<button class="service-card" data-id="' + s.id + '" onclick="selectService(\'' + s.id + '\')">' +
+      '<div class="sc-row">' +
+        '<div class="sc-info">' +
+          '<div class="sc-name">' + escHtml(s.name) + '</div>' +
+          '<div class="sc-desc">' + escHtml(s.desc) + '</div>' +
+        '</div>' +
+        '<div class="sc-meta">' +
+          '<div class="sc-dur">⏱ ' + s.duration + ' мин</div>' +
+          '<div class="sc-price">💰 ' + s.price + ' руб</div>' +
+        '</div>' +
+      '</div>' +
+    '</button>';
+  }).join('');
+})();
+
+refreshRepairMeta();
+loadNearestSlot();
+
+// Telegram Mini App init
+if (_tg) {
+  _tg.ready();
+  _tg.expand();
+
+  // Показываем кнопку запроса контакта
+  document.getElementById('btn-request-contact').classList.remove('hidden');
+
+  // Автозаполняем имя и @username из профиля Telegram
+  var tgUser = _tg.initDataUnsafe?.user;
+  if (tgUser) {
+    if (tgUser.first_name || tgUser.last_name) {
+      document.getElementById('f-name').value =
+        [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ');
+    }
+    if (tgUser.username) {
+      document.getElementById('f-tg').value = '@' + tgUser.username;
+    }
+  }
+
+  _tg.BackButton.onClick(goBack);
+  _tg.MainButton.onClick(function() {
+    if (S.mode !== 'booking' || !S.time || S.busy) return;
+    var form = document.getElementById('booking-form');
+    if (form && !document.getElementById('sect-form').classList.contains('hidden')) {
+      form.requestSubmit ? form.requestSubmit() : form.dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
+    }
+  });
+}
+
+function shareApp() {
+  // TODO: заменить 'YOUR_BOT_LINK' на реальную ссылку t.me/имя_бота после подключения бота
+  var link = 'YOUR_BOT_LINK';
+  if (_tg?.switchInlineQuery) {
+    _tg.switchInlineQuery('');
+  } else if (navigator.share) {
+    navigator.share({ title: 'Rosalia LBD — маникюр в Минске', url: link });
+  } else {
+    toast('Скоро', 'Функция появится после подключения бота', 'info');
+  }
+}
+</script>
+</body>
+</html>
