@@ -964,8 +964,8 @@ const _tg = window.Telegram?.WebApp;
 // ================================================================
 // SUPABASE CONFIG  (anon key — public by design, RLS enabled)
 // ================================================================
-const SUPA_URL = 'https://vtxugmiybckndfbelxet.supabase.co';
-const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZ0eHVnbWl5YmNrbmRmYmVseGV0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzI4OTAyMTAsImV4cCI6MjA4ODQ2NjIxMH0.P_ff0g7oxSPI-S8nz3BqNCqHs90UPAipifbAsZFwTrY';
+const SUPA_URL = 'https://cvmwnsldaclttyiizybw.supabase.co';
+const SUPA_KEY = 'sb_publishable_NdqCg2dVD-VsPm2M0_rsVw_AQRB8KSV';
 
 // ================================================================
 // CONSTANTS
@@ -1643,6 +1643,7 @@ async function submitBooking(e) {
       client_name:     name,
       client_phone:    phone,
       client_telegram: tg,
+      client_tg_id:    _tg?.initDataUnsafe?.user?.id || null,
       service_name:    svc.name,
       booking_date:    ds,
       booking_time:    S.time,
@@ -1838,7 +1839,7 @@ if (_tg) {
 
 function shareApp() {
   // TODO: заменить 'YOUR_BOT_LINK' на реальную ссылку t.me/имя_бота после подключения бота
-  var link = 'YOUR_BOT_LINK';
+  var link = 'https://t.me/rosalia_lbd_miniapp_bot';
   if (_tg?.switchInlineQuery) {
     _tg.switchInlineQuery('');
   } else if (navigator.share) {
