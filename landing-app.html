@@ -372,8 +372,8 @@
       border-radius: var(--radius);
       padding: 1rem;
       box-shadow: var(--shadow-sm);
-      display: inline-block;
-      min-width: 220px;
+      width: 100%;
+      box-sizing: border-box;
     }
     .cal-nav {
       display: flex;
@@ -396,7 +396,7 @@
     .cal-month { font-family: var(--font-display); font-size: 1rem; font-weight: 600; flex: 1; text-align: center; }
     .cal-grid  {
       display: grid;
-      grid-template-columns: repeat(7, 2.75rem);
+      grid-template-columns: repeat(7, 1fr);
       gap: 2px;
     }
     .cal-day-name {
@@ -407,7 +407,7 @@
       font-weight: 600;
     }
     .cal-day {
-      width: 2.75rem; height: 2.75rem;
+      width: 100%; aspect-ratio: 1;
       display: flex; align-items: center; justify-content: center;
       font-size: 0.875rem;
       border-radius: 50%;
