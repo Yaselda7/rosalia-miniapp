@@ -1829,6 +1829,17 @@ if (_tg) {
   _tg.setHeaderColor('#9B5250');
   _tg.setBackgroundColor('#F6F3F1');
 
+  function applyTgInsets() {
+    var top = (_tg.contentSafeAreaInset && _tg.contentSafeAreaInset.top || 0)
+            + (_tg.safeAreaInset && _tg.safeAreaInset.top || 0);
+    if (top > 0) {
+      document.querySelector('.hero').style.paddingTop = (top + 24) + 'px';
+    }
+  }
+  applyTgInsets();
+  _tg.onEvent('safeAreaChanged', applyTgInsets);
+  _tg.onEvent('contentSafeAreaChanged', applyTgInsets);
+
   // Показываем кнопку запроса контакта
   document.getElementById('btn-request-contact').classList.remove('hidden');
 
