@@ -1455,6 +1455,16 @@ function updateBookingUI() {
 // ================================================================
 function selectService(id) {
   _tg?.HapticFeedback?.impactOccurred('light');
+
+  // Повторный клик — снять выбор и вернуться в idle
+  if (S.serviceId === id) {
+    S.serviceId = null;
+    S.date = null; S.time = null; S.calYear = null; S.calMonth = null;
+    document.querySelectorAll('.service-card').forEach(function(c) { c.classList.remove('is-selected'); });
+    goBack();
+    return;
+  }
+
   S.serviceId = id;
   S.date      = null;
   S.time      = null;
