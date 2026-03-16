@@ -77,7 +77,7 @@
     ================================================================ */
     .hero {
       background: linear-gradient(to bottom, var(--secondary) 0%, var(--bg) 100%);
-      padding: 1.5rem 1.25rem 1.25rem;
+      padding: max(1.5rem, calc(env(safe-area-inset-top, 0px) + 3.5rem)) 1.25rem 1.25rem;
     }
     .hero-profile {
       display: flex;
@@ -1382,6 +1382,7 @@ function goBack() {
   S.calYear = null; S.calMonth = null;
   S.ccYear  = null; S.ccMonth  = null; S.ccDate = null;
   S.foundBooking = null;
+  document.getElementById('sect-success').classList.add('hidden');
   document.getElementById('cancel-form-view').classList.remove('hidden');
   document.getElementById('cancel-success-view').classList.add('hidden');
   document.getElementById('c-phone').value = '';
