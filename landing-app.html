@@ -1876,14 +1876,15 @@ if (_tg) {
 }
 
 function shareApp() {
-  // TODO: заменить 'YOUR_BOT_LINK' на реальную ссылку t.me/имя_бота после подключения бота
   var link = 'https://t.me/rosalia_lbd_miniapp_bot';
-  if (_tg?.switchInlineQuery) {
-    _tg.switchInlineQuery('');
+  var text = 'Записывайся на маникюр к Розе — натуральный и классический маникюр в Минске 💅';
+  if (_tg) {
+    _tg.openTelegramLink('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + encodeURIComponent(text));
   } else if (navigator.share) {
     navigator.share({ title: 'Rosalia LBD — маникюр в Минске', url: link });
   } else {
-    toast('Скоро', 'Функция появится после подключения бота', 'info');
+    navigator.clipboard && navigator.clipboard.writeText(link);
+    toast('Ссылка скопирована', link, 'success');
   }
 }
 </script>
