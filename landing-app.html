@@ -1681,6 +1681,7 @@ async function submitBooking(e) {
       '. ' + svc.name + (extras ? ' + ' + extras : '') +
       '. Итого: ' + dur + ' мин, ' + price + ' руб.';
     document.getElementById('success-desc').textContent = descText;
+    _tg?.HapticFeedback?.notificationOccurred('success');
 
     // Google Calendar ссылка
     var calDate = S.date;
